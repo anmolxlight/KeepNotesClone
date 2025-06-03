@@ -33,12 +33,26 @@ jobs:
       run: npm install -g @expo/cli
     
     - name: Generate Android project
-      run: npx expo prebuild --platform android
+      run: npx expo prebuild --platform android --clear
     
-    - name: Fix Android build.gradle
+    - name: Fix Android build issues
       run: |
-        sed -i 's/enableBundleCompression = .*/\/\/ enableBundleCompression removed - not supported/' android/app/build.gradle
-        echo "Fixed enableBundleCompression issue"
+        echo "Checking for build.gradle issues..."
+        if [ -f "android/app/build.gradle" ]; then
+          echo "Original build.gradle react block:"
+          grep -A 10 -B 2 "react {" android/app/build.gradle || true
+          
+          # Remove the problematic enableBundleCompression line
+          sed -i '/enableBundleCompression/d' android/app/build.gradle
+          
+          echo "Fixed build.gradle react block:"
+          grep -A 10 -B 2 "react {" android/app/build.gradle || true
+          
+          echo "enableBundleCompression line removed successfully"
+        else
+          echo "Error: build.gradle not found!"
+          exit 1
+        fi
     
     - name: Make gradlew executable
       run: chmod +x android/gradlew
@@ -46,7 +60,7 @@ jobs:
     - name: Build Debug APK
       run: |
         cd android
-        ./gradlew assembleDebug
+        ./gradlew assembleDebug --stacktrace
     
     - name: Upload APK as artifact
       uses: actions/upload-artifact@v4
