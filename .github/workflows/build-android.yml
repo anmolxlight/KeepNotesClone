@@ -27,13 +27,13 @@ jobs:
       uses: android-actions/setup-android@v3
     
     - name: Install dependencies
-      run: npm install
+      run: npm install --production=false
     
     - name: Setup Expo CLI
       run: npm install -g @expo/cli
     
-    - name: Generate Android project
-      run: npx expo prebuild --platform android
+    - name: Generate Android project for production
+      run: npx expo prebuild --platform android --clear --no-dev-client
     
     - name: Fix Android build issues
       run: |
@@ -51,33 +51,25 @@ jobs:
         # Find the defaultConfig block and add manifestPlaceholders
         sed -i '/versionName "1.0.0"/a\        manifestPlaceholders = [\n            auth0Domain: "dev-d01cquhr17ihtieb.us.auth0.com",\n            auth0Scheme: "com.anmolxred.noted.smartnotes"\n        ]' android/app/build.gradle
         
+        # Remove any dev-launcher references if they exist
+        echo "Removing dev-launcher dependencies..."
+        sed -i '/expo-dev-launcher/d' android/settings.gradle || true
+        sed -i '/DevLauncher/d' android/app/build.gradle || true
+        
         echo "Build.gradle fixes applied successfully"
-        echo "Checking defaultConfig section:"
-        grep -A 10 -B 2 "defaultConfig" android/app/build.gradle || true
+        echo "Checking if expo-dev-launcher is removed from settings.gradle:"
+        grep -i "dev-launcher" android/settings.gradle || echo "No dev-launcher found (good!)"
     
     - name: Make gradlew executable
       run: chmod +x android/gradlew
     
-    - name: Build Debug APK
+    - name: Build Release APK (Production)
       run: |
         cd android
-        ./gradlew assembleDebug --stacktrace
-    
-    - name: Upload APK as artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-debug-apk
-        path: android/app/build/outputs/apk/debug/app-debug.apk
-        
-    - name: Build Release APK
-      run: |
-        cd android
-        ./gradlew assembleRelease
-      continue-on-error: true
+        ./gradlew assembleRelease --stacktrace
     
     - name: Upload Release APK as artifact
       uses: actions/upload-artifact@v4
       with:
         name: app-release-apk
-        path: android/app/build/outputs/apk/release/app-release-unsigned.apk
-      if: success() 
+        path: android/app/build/outputs/apk/release/app-release-unsigned.apk 
