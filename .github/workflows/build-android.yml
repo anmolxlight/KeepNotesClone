@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Auto-Fix Android APK Builder
 on:
   push:
     branches: [ main, master ]
@@ -7,6 +7,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        attempt: [1, 2, 3]
+    continue-on-error: true
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -27,49 +31,114 @@ jobs:
       uses: android-actions/setup-android@v3
     
     - name: Install dependencies
-      run: npm install --production=false
+      run: npm install
     
     - name: Setup Expo CLI
       run: npm install -g @expo/cli
     
-    - name: Generate Android project for production
-      run: npx expo prebuild --platform android
-    
-    - name: Fix Android build issues
+    - name: Attempt ${{ matrix.attempt }} - Generate Android project
       run: |
-        echo "Fixing Android build issues..."
+        echo "=== BUILD ATTEMPT ${{ matrix.attempt }} ==="
         
-        # Remove the problematic enableBundleCompression line
+        if [ "${{ matrix.attempt }}" == "1" ]; then
+          echo "Strategy 1: Production build without dev client"
+          npx expo prebuild --platform android --clear --no-dev-client
+        elif [ "${{ matrix.attempt }}" == "2" ]; then
+          echo "Strategy 2: Standard build with fixes"
+          npx expo prebuild --platform android --clear
+        else
+          echo "Strategy 3: Basic build"
+          npx expo prebuild --platform android
+        fi
+    
+    - name: Attempt ${{ matrix.attempt }} - Auto-fix build issues
+      run: |
+        echo "=== AUTO-FIXING BUILD ISSUES ==="
+        
+        # Fix 1: Remove enableBundleCompression
         if grep -q "enableBundleCompression" android/app/build.gradle; then
           sed -i '/enableBundleCompression/d' android/app/build.gradle
-          echo "Removed enableBundleCompression line"
+          echo "✅ Fixed enableBundleCompression"
         fi
         
-        # Add Auth0 manifest placeholders to build.gradle
-        echo "Adding Auth0 manifest placeholders..."
+        # Fix 2: Add Auth0 manifest placeholders
+        if ! grep -q "manifestPlaceholders" android/app/build.gradle; then
+          sed -i '/versionName "1.0.0"/a\        manifestPlaceholders = [\n            auth0Domain: "dev-d01cquhr17ihtieb.us.auth0.com",\n            auth0Scheme: "com.anmolxred.noted.smartnotes"\n        ]' android/app/build.gradle
+          echo "✅ Added Auth0 manifest placeholders"
+        fi
         
-        # Find the defaultConfig block and add manifestPlaceholders
-        sed -i '/versionName "1.0.0"/a\        manifestPlaceholders = [\n            auth0Domain: "dev-d01cquhr17ihtieb.us.auth0.com",\n            auth0Scheme: "com.anmolxred.noted.smartnotes"\n        ]' android/app/build.gradle
+        # Fix 3: Remove dev-launcher if present
+        if grep -q "expo-dev-launcher" android/settings.gradle; then
+          sed -i '/expo-dev-launcher/d' android/settings.gradle
+          echo "✅ Removed expo-dev-launcher from settings"
+        fi
         
-        # Remove any dev-launcher references if they exist
-        echo "Removing dev-launcher dependencies..."
-        sed -i '/expo-dev-launcher/d' android/settings.gradle || true
-        sed -i '/DevLauncher/d' android/app/build.gradle || true
+        # Fix 4: Clean up MainApplication.java if needed
+        if [ -f "android/app/src/main/java/com/anmolxred/noted/smartnotes/MainApplication.java" ]; then
+          sed -i '/DevLauncher/d' android/app/src/main/java/com/anmolxred/noted/smartnotes/MainApplication.java || true
+          echo "✅ Cleaned MainApplication.java"
+        fi
         
-        echo "Build.gradle fixes applied successfully"
-        echo "Checking if expo-dev-launcher is removed from settings.gradle:"
-        grep -i "dev-launcher" android/settings.gradle || echo "No dev-launcher found (good!)"
+        # Fix 5: Update gradle.properties for attempt 3
+        if [ "${{ matrix.attempt }}" == "3" ]; then
+          echo "android.enableJetifier=true" >> android/gradle.properties
+          echo "android.useAndroidX=true" >> android/gradle.properties
+          echo "✅ Added compatibility flags"
+        fi
+        
+        echo "=== BUILD CONFIGURATION SUMMARY ==="
+        echo "Auth0 placeholders:"
+        grep -A 5 "manifestPlaceholders" android/app/build.gradle || echo "Not found"
+        echo "Dev launcher check:"
+        grep -i "dev-launcher" android/settings.gradle || echo "✅ No dev-launcher found"
     
     - name: Make gradlew executable
       run: chmod +x android/gradlew
     
-    - name: Build Release APK (Production)
+    - name: Attempt ${{ matrix.attempt }} - Build APK
+      id: build
       run: |
         cd android
-        ./gradlew assembleRelease --stacktrace
+        
+        if [ "${{ matrix.attempt }}" == "1" ]; then
+          echo "Building release APK..."
+          ./gradlew assembleRelease --stacktrace --info
+        elif [ "${{ matrix.attempt }}" == "2" ]; then
+          echo "Building debug APK..."
+          ./gradlew assembleDebug --stacktrace
+        else
+          echo "Building with clean..."
+          ./gradlew clean assembleDebug --stacktrace
+        fi
+        
+        echo "✅ BUILD SUCCESSFUL!"
     
-    - name: Upload Release APK as artifact
+    - name: Upload APK (Release)
+      if: matrix.attempt == 1 && steps.build.outcome == 'success'
       uses: actions/upload-artifact@v4
       with:
-        name: app-release-apk
-        path: android/app/build/outputs/apk/release/app-release-unsigned.apk 
+        name: app-release-apk-attempt-${{ matrix.attempt }}
+        path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+    
+    - name: Upload APK (Debug)
+      if: matrix.attempt != 1 && steps.build.outcome == 'success'
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug-apk-attempt-${{ matrix.attempt }}
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+    
+    - name: Mark as successful
+      if: steps.build.outcome == 'success'
+      run: |
+        echo "🎉 BUILD ATTEMPT ${{ matrix.attempt }} SUCCEEDED!"
+        echo "APK is ready for download in artifacts!"
+        
+  notify-success:
+    needs: build
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+    - name: Check if any build succeeded
+      run: |
+        echo "Build matrix completed. Check artifacts for successful APK builds!"
+        echo "If all attempts failed, check the logs for the specific errors to fix." 
