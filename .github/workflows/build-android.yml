@@ -37,22 +37,23 @@ jobs:
     
     - name: Fix Android build issues
       run: |
-        echo "Checking for build.gradle issues..."
-        if [ -f "android/app/build.gradle" ]; then
-          echo "Original build.gradle react block:"
-          grep -A 10 -B 2 "react {" android/app/build.gradle || true
-          
-          # Remove the problematic enableBundleCompression line
+        echo "Fixing Android build issues..."
+        
+        # Remove the problematic enableBundleCompression line
+        if grep -q "enableBundleCompression" android/app/build.gradle; then
           sed -i '/enableBundleCompression/d' android/app/build.gradle
-          
-          echo "Fixed build.gradle react block:"
-          grep -A 10 -B 2 "react {" android/app/build.gradle || true
-          
-          echo "enableBundleCompression line removed successfully"
-        else
-          echo "Error: build.gradle not found!"
-          exit 1
+          echo "Removed enableBundleCompression line"
         fi
+        
+        # Add Auth0 manifest placeholders to build.gradle
+        echo "Adding Auth0 manifest placeholders..."
+        
+        # Find the defaultConfig block and add manifestPlaceholders
+        sed -i '/versionName "1.0.0"/a\        manifestPlaceholders = [\n            auth0Domain: "dev-d01cquhr17ihtieb.us.auth0.com",\n            auth0Scheme: "com.anmolxred.noted.smartnotes"\n        ]' android/app/build.gradle
+        
+        echo "Build.gradle fixes applied successfully"
+        echo "Checking defaultConfig section:"
+        grep -A 10 -B 2 "defaultConfig" android/app/build.gradle || true
     
     - name: Make gradlew executable
       run: chmod +x android/gradlew
