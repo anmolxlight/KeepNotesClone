@@ -1,29 +1,75 @@
 {
   "expo": {
-    "name": "KeepNotesClone",
-    "slug": "KeepNotesClone",
+    "name": "Noted - Smart Notes App",
+    "slug": "anmolxred-noted-smart-notes",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#202124"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anmolxred.noted.smartnotes"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#202124"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": false,
+      "package": "com.anmolxred.noted.smartnotes",
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/GoogleSans-Regular.ttf"
+          ]
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 34,
+            "targetSdkVersion": 34,
+            "buildToolsVersion": "34.0.0",
+            "minSdkVersion": 24,
+            "kotlinVersion": "2.0.21",
+            "ndkVersion": "26.1.10909125"
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "GEMINI_API_KEY": "$GEMINI_API_KEY",
+      "PINECONE_API_KEY": "$PINECONE_API_KEY",
+      "PINECONE_ENVIRONMENT": "$PINECONE_ENVIRONMENT",
+      "PINECONE_INDEX_NAME": "$PINECONE_INDEX_NAME",
+      "DEEPGRAM_API_KEY": "$DEEPGRAM_API_KEY",
+      "SUPABASE_URL": "$SUPABASE_URL",
+      "SUPABASE_ANON_KEY": "$SUPABASE_ANON_KEY",
+      "AUTH0_DOMAIN": "$AUTH0_DOMAIN",
+      "AUTH0_CLIENT_ID": "$AUTH0_CLIENT_ID",
+      "APP_ENV": "$APP_ENV",
+      "eas": {
+        "projectId": "5a3f2eb6-a13a-411d-ab8b-3f3ccf48adbd"
+      }
     }
   }
 }

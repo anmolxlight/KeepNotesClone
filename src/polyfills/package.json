@@ -1,0 +1,16 @@
+{
+  "name": "ws",
+  "version": "8.18.2",
+  "description": "React Native WebSocket polyfill for ws package",
+  "main": "ws-polyfill.js",
+  "browser": "ws-polyfill.js",
+  "react-native": "ws-polyfill.js",
+  "exports": {
+    ".": "./ws-polyfill.js",
+    "./lib/stream": "./ws-polyfill.js",
+    "./lib/websocket": "./ws-polyfill.js",
+    "./lib/websocket-server": "./ws-polyfill.js"
+  },
+  "keywords": ["websocket", "polyfill", "react-native"],
+  "license": "MIT"
+} 

@@ -1,20 +1,34 @@
+import 'react-native-gesture-handler';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import AppNavigator from './src/navigation/AppNavigator';
+import ServiceStatusChecker from './src/utils/serviceStatus';
+import { clearAllAppData } from './src/utils/storageUtils';
 
 export default function App() {
+  useEffect(() => {
+    initializeApp();
+  }, []);
+
+  const initializeApp = async () => {
+    try {
+      // Only clear app data if we need to reset (can be controlled via a flag)
+      const shouldClearData = false; // Set to true only when needed for debugging
+      if (shouldClearData) {
+        await clearAllAppData();
+      }
+      
+      // Log service status on app start
+      ServiceStatusChecker.logServiceStatus();
+    } catch (error) {
+      console.error('App initialization error:', error);
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <>
+      <StatusBar style="light" backgroundColor="#202124" />
+      <AppNavigator />
+    </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

@@ -1,0 +1,63 @@
+name: Build Android APK
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
+        cache: 'npm'
+    
+    - name: Setup Java JDK
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+    
+    - name: Setup Android SDK
+      uses: android-actions/setup-android@v3
+    
+    - name: Install dependencies
+      run: npm install
+    
+    - name: Setup Expo CLI
+      run: npm install -g @expo/cli
+    
+    - name: Generate Android project
+      run: npx expo prebuild --platform android --clear
+    
+    - name: Make gradlew executable
+      run: chmod +x android/gradlew
+    
+    - name: Build Debug APK
+      run: |
+        cd android
+        ./gradlew assembleDebug
+    
+    - name: Upload APK as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug-apk
+        path: android/app/build/outputs/apk/debug/app-debug.apk
+        
+    - name: Build Release APK
+      run: |
+        cd android
+        ./gradlew assembleRelease
+      continue-on-error: true
+    
+    - name: Upload Release APK as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-release-apk
+        path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+      if: success() 
