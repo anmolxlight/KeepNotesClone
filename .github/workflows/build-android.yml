@@ -33,7 +33,12 @@ jobs:
       run: npm install -g @expo/cli
     
     - name: Generate Android project
-      run: npx expo prebuild --platform android
+      run: npx expo prebuild --platform android --clear
+    
+    - name: Fix Android build.gradle
+      run: |
+        sed -i 's/enableBundleCompression = .*/\/\/ enableBundleCompression removed - not supported/' android/app/build.gradle
+        echo "Fixed enableBundleCompression issue"
     
     - name: Make gradlew executable
       run: chmod +x android/gradlew
