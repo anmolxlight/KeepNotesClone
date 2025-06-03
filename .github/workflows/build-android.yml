@@ -33,7 +33,7 @@ jobs:
       run: npm install -g @expo/cli
     
     - name: Generate Android project
-      run: npx expo prebuild --platform android --clear
+      run: npx expo prebuild --platform android
     
     - name: Fix Android build issues
       run: |
