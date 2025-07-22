@@ -1,103 +1,97 @@
-import { Note } from '../types';
-import 'react-native-get-random-values';
 import { v4 as uuidv4 } from 'uuid';
+import { Note, KEEP_COLORS } from '../types';
 
-export const generateId = (): string => {
-  return uuidv4();
-};
+export const generateId = (): string => uuidv4();
 
 export const formatDate = (date: Date): string => {
   const now = new Date();
   const diff = now.getTime() - date.getTime();
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(hours / 24);
+
+  if (hours < 1) return 'Just now';
+  if (hours < 24) return `${hours}h ago`;
+  if (days === 1) return 'Yesterday';
+  if (days < 7) return `${days} days ago`;
   
-  if (days === 0) {
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    if (hours === 0) {
-      const minutes = Math.floor(diff / (1000 * 60));
-      return minutes <= 1 ? 'Just now' : `${minutes} minutes ago`;
-    }
-    return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
-  } else if (days === 1) {
-    return 'Yesterday';
-  } else if (days < 7) {
-    return `${days} days ago`;
-  } else {
-    return date.toLocaleDateString();
-  }
+  return date.toLocaleDateString();
 };
 
-export const sampleNotes: Note[] = [
-  {
-    id: generateId(),
-    title: 'title',
-    content: 'hello',
-    color: '#ffffff',
-    isPinned: false,
-    labels: [],
-    images: [],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2), // 2 hours ago
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2),
-  },
-  {
-    id: generateId(),
-    title: 'title 2',
-    content: 'hello 2',
-    color: '#ffffff',
-    isPinned: false,
-    labels: [],
-    images: [],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 4), // 4 hours ago
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 4),
-  },
-  {
-    id: generateId(),
-    title: 'Shopping List',
-    content: 'Milk\nBread\nEggs\nApples\nBananas',
-    color: '#ccff90',
-    isPinned: true,
-    labels: ['Shopping', 'Important'],
-    images: [],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24), // 1 day ago
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 12),
-  },
-  {
-    id: generateId(),
-    title: 'Meeting Notes',
-    content: 'Discussed project timeline\nDeadline: Next Friday\nAssign tasks to team members\nFollow up on budget approval',
-    color: '#aecbfa',
-    isPinned: false,
-    labels: ['Work', 'Meetings'],
-    images: [],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48), // 2 days ago
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24),
-  },
-  {
-    id: generateId(),
-    title: 'Weekend Plans',
-    content: 'Visit the park\nMovie night with friends\nTry that new restaurant\nGrocery shopping',
-    color: '#fdcfe8',
-    isPinned: false,
-    labels: ['Personal', 'Weekend'],
-    images: [],
-    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 72), // 3 days ago
-    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 48),
-  },
-];
+export const getColorClassName = (colorValue: string): string => {
+  const color = KEEP_COLORS.find(c => c.value === colorValue);
+  return color?.className || 'bg-white text-gray-800';
+};
 
-export const createNewNote = (): Note => {
-  const now = new Date();
-  return {
+export const generateSampleNotes = (): Note[] => {
+  const sampleData = [
+    {
+      title: 'Welcome to Keep Notes Clone',
+      content: 'This is a fully functional Google Keep clone with AI features! Try creating a new note, organizing with labels, or chatting with the AI assistant.',
+      color: '#cbf0f8',
+      labels: ['Welcome'],
+      isPinned: true,
+    },
+    {
+      title: 'Meeting Notes - Project Alpha',
+      content: 'Discussed the new feature roadmap:\n• Implement user authentication\n• Add collaborative editing\n• Integrate voice notes\n• Deploy to production',
+      color: '#fff475',
+      labels: ['Work', 'Meetings'],
+      isPinned: false,
+    },
+    {
+      title: 'Grocery List',
+      content: '🥛 Milk\n🍞 Bread\n🥚 Eggs\n🍌 Bananas\n🥕 Carrots\n🧀 Cheese\n🍎 Apples',
+      color: '#ccff90',
+      labels: ['Personal', 'Shopping'],
+      isPinned: false,
+    },
+    {
+      title: 'Book Recommendations',
+      content: 'Must read:\n📚 "The Pragmatic Programmer"\n📚 "Clean Code"\n📚 "Design Patterns"\n📚 "You Don\'t Know JS"',
+      color: '#d7aefb',
+      labels: ['Learning', 'Books'],
+      isPinned: false,
+    },
+    {
+      title: 'Weekend Plans',
+      content: '🎬 Watch the new movie\n🏃‍♂️ Go for a run in the park\n👨‍🍳 Try that new recipe\n📞 Call mom and dad',
+      color: '#fdcfe8',
+      labels: ['Personal'],
+      isPinned: false,
+    },
+    {
+      title: 'Code Snippets',
+      content: 'Useful React patterns:\n\n```jsx\nconst [state, setState] = useState(initialState);\n\nuseEffect(() => {\n  // Side effects\n}, [dependencies]);\n```',
+      color: '#a7ffeb',
+      labels: ['Code', 'React'],
+      isPinned: false,
+    },
+    {
+      title: 'Travel Ideas',
+      content: '✈️ Japan - Cherry blossom season\n🏔️ Switzerland - Alps hiking\n🏖️ Maldives - Beach relaxation\n🏛️ Greece - Historical sites',
+      color: '#f28b82',
+      labels: ['Travel', 'Ideas'],
+      isPinned: false,
+    },
+    {
+      title: 'Daily Affirmations',
+      content: '🌟 I am capable of achieving my goals\n💪 I embrace challenges as opportunities\n🧘‍♀️ I choose peace and positivity\n❤️ I am grateful for today\'s blessings',
+      color: '#fbbc04',
+      labels: ['Personal', 'Wellness'],
+      isPinned: false,
+    },
+  ];
+
+  return sampleData.map((data, index) => ({
     id: generateId(),
-    title: '',
-    content: '',
-    color: '#ffffff',
-    isPinned: false,
-    labels: [],
+    ...data,
     images: [],
-    createdAt: now,
-    updatedAt: now,
-  };
+    backgroundColor: undefined,
+    createdAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000), // Spread over days
+    updatedAt: new Date(Date.now() - index * 24 * 60 * 60 * 1000),
+    isArchived: false,
+    isDeleted: false,
+  }));
 };
 
 export const debounce = <T extends (...args: any[]) => any>(
@@ -105,6 +99,7 @@ export const debounce = <T extends (...args: any[]) => any>(
   delay: number
 ): ((...args: Parameters<T>) => void) => {
   let timeoutId: NodeJS.Timeout;
+  
   return (...args: Parameters<T>) => {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => func(...args), delay);
@@ -113,31 +108,83 @@ export const debounce = <T extends (...args: any[]) => any>(
 
 export const truncateText = (text: string, maxLength: number): string => {
   if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength).trim() + '...';
+  return text.substring(0, maxLength) + '...';
 };
 
-export const getContrastColor = (backgroundColor: string): string => {
-  // Convert hex to RGB
-  const hex = backgroundColor.replace('#', '');
-  const r = parseInt(hex.substring(0, 2), 16);
-  const g = parseInt(hex.substring(2, 4), 16);
-  const b = parseInt(hex.substring(4, 6), 16);
+export const searchNotes = (notes: Note[], query: string): Note[] => {
+  if (!query.trim()) return notes;
   
-  // Calculate luminance
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  const lowercaseQuery = query.toLowerCase();
   
-  // Return black for light backgrounds, white for dark backgrounds
-  return luminance > 0.6 ? '#000000' : '#ffffff';
+  return notes.filter(note =>
+    note.title.toLowerCase().includes(lowercaseQuery) ||
+    note.content.toLowerCase().includes(lowercaseQuery) ||
+    note.labels.some(label => label.toLowerCase().includes(lowercaseQuery))
+  );
 };
 
-export const isLightColor = (color: string): boolean => {
-  const lightColors = [
-    '#ffffff', // Default
-    '#fff475', // Yellow
-    '#ccff90', // Green
-    '#a7ffeb', // Teal
-    '#cbf0f8', // Blue
-    '#e6c9a8', // Brown
-  ];
-  return lightColors.includes(color);
-}; 
+export const sortNotes = (notes: Note[]): Note[] => {
+  return [...notes].sort((a, b) => {
+    // Pinned notes first
+    if (a.isPinned && !b.isPinned) return -1;
+    if (!a.isPinned && b.isPinned) return 1;
+    
+    // Then sort by updated date (newest first)
+    return b.updatedAt.getTime() - a.updatedAt.getTime();
+  });
+};
+
+export const exportNotesToJSON = (notes: Note[]): string => {
+  return JSON.stringify(notes, null, 2);
+};
+
+export const importNotesFromJSON = (jsonString: string): Note[] => {
+  try {
+    const parsed = JSON.parse(jsonString);
+    if (!Array.isArray(parsed)) throw new Error('Invalid format');
+    
+    return parsed.map(note => ({
+      ...note,
+      createdAt: new Date(note.createdAt),
+      updatedAt: new Date(note.updatedAt),
+    }));
+  } catch (error) {
+    throw new Error('Failed to import notes: Invalid JSON format');
+  }
+};
+
+// Masonry layout helper
+export const calculateMasonryColumns = (containerWidth: number): number => {
+  if (containerWidth < 600) return 1;
+  if (containerWidth < 900) return 2;
+  if (containerWidth < 1200) return 3;
+  if (containerWidth < 1500) return 4;
+  return 5;
+};
+
+// Local storage helpers for web
+export const saveToLocalStorage = (key: string, data: any): void => {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (error) {
+    console.error('Failed to save to localStorage:', error);
+  }
+};
+
+export const loadFromLocalStorage = <T>(key: string, defaultValue: T): T => {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : defaultValue;
+  } catch (error) {
+    console.error('Failed to load from localStorage:', error);
+    return defaultValue;
+  }
+};
+
+export const removeFromLocalStorage = (key: string): void => {
+  try {
+    localStorage.removeItem(key);
+  } catch (error) {
+    console.error('Failed to remove from localStorage:', error);
+  }
+};

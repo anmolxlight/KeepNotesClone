@@ -11,6 +11,8 @@ export interface Note {
   backgroundColor?: string;
   createdAt: Date;
   updatedAt: Date;
+  isArchived?: boolean;
+  isDeleted?: boolean;
 }
 
 export interface ChatMessage {
@@ -29,19 +31,19 @@ export interface ChatThread {
 }
 
 export const KEEP_COLORS = [
-  { name: 'Default', value: '#ffffff' },
-  { name: 'Red', value: '#f28b82' },
-  { name: 'Orange', value: '#fbbc04' },
-  { name: 'Yellow', value: '#fff475' },
-  { name: 'Green', value: '#ccff90' },
-  { name: 'Teal', value: '#a7ffeb' },
-  { name: 'Blue', value: '#cbf0f8' },
-  { name: 'Dark Blue', value: '#aecbfa' },
-  { name: 'Purple', value: '#d7aefb' },
-  { name: 'Pink', value: '#fdcfe8' },
-  { name: 'Brown', value: '#e6c9a8' },
-  { name: 'Gray', value: '#e8eaed' },
-];
+  { name: 'Default', value: '#ffffff', className: 'bg-white text-gray-800' },
+  { name: 'Red', value: '#f28b82', className: 'bg-notes-red text-gray-800' },
+  { name: 'Orange', value: '#fbbc04', className: 'bg-notes-orange text-gray-800' },
+  { name: 'Yellow', value: '#fff475', className: 'bg-notes-yellow text-gray-800' },
+  { name: 'Green', value: '#ccff90', className: 'bg-notes-green text-gray-800' },
+  { name: 'Teal', value: '#a7ffeb', className: 'bg-notes-teal text-gray-800' },
+  { name: 'Blue', value: '#cbf0f8', className: 'bg-notes-blue text-gray-800' },
+  { name: 'Dark Blue', value: '#aecbfa', className: 'bg-notes-dark-blue text-gray-800' },
+  { name: 'Purple', value: '#d7aefb', className: 'bg-notes-purple text-gray-800' },
+  { name: 'Pink', value: '#fdcfe8', className: 'bg-notes-pink text-gray-800' },
+  { name: 'Brown', value: '#e6c9a8', className: 'bg-notes-brown text-gray-800' },
+  { name: 'Gray', value: '#e8eaed', className: 'bg-notes-gray text-gray-800' },
+] as const;
 
 export const BACKGROUND_THEMES = [
   { name: 'None', value: null },
@@ -53,7 +55,7 @@ export const BACKGROUND_THEMES = [
   { name: 'Notes', value: 'notes' },
   { name: 'Travel', value: 'travel' },
   { name: 'Video', value: 'video' },
-];
+] as const;
 
 export interface Label {
   id: string;
@@ -78,4 +80,22 @@ export interface AppState {
   viewMode: ViewMode;
   searchQuery: string;
   selectedLabels: string[];
+  sidebarOpen: boolean;
+  currentPage: 'notes' | 'archive' | 'deleted' | 'labels' | 'settings' | 'chat';
+}
+
+// Web-specific types
+export interface NavigationItem {
+  id: string;
+  label: string;
+  icon: string;
+  path: string;
+  count?: number;
+}
+
+export interface FloatingActionButton {
+  icon: string;
+  action: () => void;
+  primary?: boolean;
+  className?: string;
 } 
